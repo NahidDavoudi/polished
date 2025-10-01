@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>برنج داودی — فروشگاه</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/feather-icons"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{font-family:'Vazirmatn',sans-serif;background:#f6f7fb;color:#0f1724}
+  .page{display:none}.page.active{display:block}
+  .btn-accent{background:#FFC107;color:#0b1720;font-weight:600}
+  .form-input{background:#0d1b2a;border:1px solid #415a77;color:#e0e1dd;padding:.6rem;border-radius:.6rem}
+  .card{background:#0f1724;border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,0.03)}
+  .muted{color:#a9b4c2}
+  .toast{position:fixed;left:50%;top:24px;transform:translateX(-50%);z-index:60;padding:10px 14px;border-radius:8px;color:#07202a}
+  .toast-success{background:#d1f7e7}
+  .toast-error{background:#ffdede}
+  .status-badge{padding:6px 10px;border-radius:999px;font-size:12px}
+</style>
+</head>
+<body class="antialiased">
+
+<!-- Container -->
+<div class="max-w-lg mx-auto min-h-screen bg-white shadow-xl rounded-3xl overflow-hidden">
+
+  <!-- Header -->
+  <header class="p-4 bg-white/90 sticky top-0 z-40">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-brand-accent rounded-md flex items-center justify-center">
+          <span class="font-bold text-2xl">ب</span>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold">برنج داودی</h1>
+          <p class="text-xs muted">برنج ممتاز شمال</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="nav-cart-btn" class="p-2 rounded-md" title="سبد خرید" onclick="showPage('cart-page')">
+          <i data-feather="shopping-cart" class="w-5 h-5"></i>
+          <span id="cart-count" class="inline-block ml-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs text-center">0</span>
+        </button>
+        <button id="nav-profile-btn" class="p-2 rounded-md" title="پروفایل" onclick="handleProfileClick()">
+          <i data-feather="user" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="pb-28">
+    <!-- HOME -->
+    <section id="home-page" class="page active p-4">
+      <div class="rounded-2xl p-4 mb-4 card">
+        <h2 class="text-xl font-bold">برنج ممتاز</h2>
+        <p class="muted text-sm">از چله‌های شمال، مستقیم روی میز شما.</p>
+      </div>
+
+      <h3 class="px-4 text-base font-semibold mb-3">محصولات</h3>
+      <div id="products-grid" class="grid grid-cols-2 gap-4 px-4"></div>
+    </section>
+
+    <!-- CART -->
+    <section id="cart-page" class="page p-4">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-lg font-bold">سبد خرید</h2>
+        <button class="text-sm muted" onclick="showPage('home-page')">بازگشت به محصولات</button>
+      </div>
+      <div id="cart-items" class="space-y-3 mb-4"></div>
+      <div id="cart-summary" class="card p-4 mb-4 hidden">
+        <div class="flex justify-between text-sm muted"><span>جمع جزء</span><span id="cart-subtotal">۰</span></div>
+        <div class="flex justify-between text-sm muted mt-2"><span>تخفیف</span><span id="cart-discount">۰</span></div>
+        <hr class="my-2 border-white/5" />
+        <div class="flex justify-between font-bold text-base"><span>مبلغ نهایی</span><span id="cart-final">۰</span></div>
+      </div>
+      <div class="flex gap-3">
+        <button id="checkout-btn" onclick="proceedToCheckout()" class="btn-accent w-full py-3 rounded-xl disabled:opacity-60" disabled>ادامه خرید</button>
+        <button onclick="clearCart()" class="w-1/3 py-3 rounded-xl border">پاک کردن</button>
+      </div>
+    </section>
+
+    <!-- CHECKOUT -->
+    <section id="checkout-page" class="page p-4">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-lg font-bold">تکمیل سفارش</h2>
+        <button class="text-sm muted" onclick="showPage('cart-page')">بازگشت به سبد</button>
+      </div>
+
+      <div class="card p-4 mb-4">
+        <h3 class="font-semibold mb-2">آدرس تحویل</h3>
+
+        <div class="flex gap-2 items-center mb-3">
+          <label><input type="radio" name="addressOption" value="saved" checked onchange="toggleAddressForm(false)"> استفاده از آدرس ذخیره‌شده</label>
+          <label><input type="radio" name="addressOption" value="new" onchange="toggleAddressForm(true)"> ثبت آدرس جدید</label>
+        </div>
+
+        <div id="savedAddressesBox" class="mb-3">
+          <select id="savedAddresses" class="w-full form-input"></select>
+          <div class="flex gap-2 mt-2">
+            <button class="w-1/2 py-2 rounded-md border" onclick="openEditAddress()">ویرایش</button>
+            <button class="w-1/2 py-2 rounded-md border text-red-500" onclick="deleteSelectedAddress()">حذف</button>
+          </div>
+        </div>
+
+        <div id="newAddressForm" class="hidden space-y-2">
+          <div class="grid grid-cols-2 gap-2">
+            <select id="province" class="form-input"></select>
+            <select id="city" class="form-input" disabled></select>
+          </div>
+          <input id="postal_code" class="form-input" placeholder="کد پستی (اختیاری)" />
+          <textarea id="address_details" class="form-input" placeholder="آدرس دقیق (خیابان، کوچه، پلاک)"></textarea>
+          <label class="flex items-center gap-2"><input type="checkbox" id="saveAsDefault"> ذخیره به عنوان پیش‌فرض</label>
+          <div class="flex gap-2">
+            <button class="btn-accent w-full py-2 rounded-md" onclick="saveAddress()">ذخیره آدرس</button>
+            <button class="w-full py-2 rounded-md border" onclick="resetAddressForm()">لغو</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-4 mb-4">
+        <h3 class="font-semibold mb-2">روش پرداخت</h3>
+        <label class="block"><input type="radio" name="payment" value="cod" checked> پرداخت در محل</label>
+        <!-- future: add online payment -->
+      </div>
+
+      <div class="flex gap-3">
+        <button id="confirm-order-btn" class="btn-accent w-full py-3 rounded-xl" onclick="confirmOrder()">تایید و ثبت سفارش</button>
+        <button class="w-1/3 py-3 rounded-xl border" onclick="showPage('cart-page')">بازگشت</button>
+      </div>
+    </section>
+
+    <!-- ORDERS -->
+    <section id="orders-page" class="page p-4">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-lg font-bold">سفارشات من</h2>
+        <button class="text-sm muted" onclick="showPage('profile-page')">پروفایل</button>
+      </div>
+      <div id="orders-list" class="space-y-3"></div>
+    </section>
+
+    <!-- PROFILE -->
+    <section id="profile-page" class="page p-4">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-lg font-bold">پروفایل</h2>
+        <button class="text-sm muted" onclick="showPage('home-page')">بازگشت</button>
+      </div>
+
+      <div class="card p-4 mb-4">
+        <h3 class="font-semibold">اطلاعات</h3>
+        <p id="profile-name" class="font-bold"></p>
+        <p id="profile-phone" class="muted"></p>
+        <p class="muted mt-2">کد معرف: <span id="profile-referral" class="font-bold"></span></p>
+        <div class="mt-3 flex gap-2">
+          <button class="btn-accent w-full py-2 rounded-md" onclick="showPage('orders-page')">مشاهده سفارشات</button>
+          <button class="w-full py-2 rounded-md border" onclick="logout()">خروج</button>
+        </div>
+      </div>
+
+      <div class="card p-4">
+        <h3 class="font-semibold">آدرس‌ها</h3>
+        <div id="profile-addresses" class="space-y-2 mt-2"></div>
+        <button class="mt-3 w-full py-2 rounded-md border" onclick="openNewAddressFromProfile()">افزودن آدرس جدید</button>
+      </div>
+    </section>
+
+    <!-- AUTH -->
+    <section id="auth-page" class="page p-4">
+      <div class="grid gap-4">
+        <div class="card p-4">
+          <h3 class="font-semibold mb-2">ورود</h3>
+          <form id="login-form" onsubmit="login(event)" class="space-y-2">
+            <input id="loginUsername" class="form-input" placeholder="شماره یا ایمیل" required />
+            <input id="loginPassword" type="password" class="form-input" placeholder="رمز عبور" required />
+            <button class="btn-accent w-full py-2 rounded-md" type="submit">ورود</button>
+          </form>
+          <p class="muted text-sm mt-2">حساب ندارید؟ <button class="text-yellow-500" onclick="showRegisterForm()">ثبت‌نام</button></p>
+        </div>
+
+        <div id="register-card" class="card p-4">
+          <h3 class="font-semibold mb-2">ثبت نام</h3>
+          <form id="register-form" onsubmit="register(event)" class="space-y-2">
+            <input id="registerName" class="form-input" placeholder="نام کامل" required />
+            <input id="registerPhone" class="form-input" placeholder="شماره تماس" required />
+            <input id="registerPassword" type="password" class="form-input" placeholder="رمز عبور" required />
+            <input id="registerReferral" class="form-input" placeholder="کد معرف (اختیاری)" />
+            <button class="btn-accent w-full py-2 rounded-md" type="submit">ثبت نام</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Confirmation -->
+    <section id="confirmation-page" class="page p-4 text-center">
+      <div class="p-6 card">
+        <i data-feather="check-circle" class="w-12 h-12 text-green-400 mx-auto"></i>
+        <h3 class="text-xl font-bold mt-3">سفارش شما ثبت شد</h3>
+        <p class="muted mt-2">شماره سفارش: <span id="order-number"></span></p>
+        <div class="mt-4">
+          <button class="btn-accent px-4 py-2 rounded-md" onclick="showPage('orders-page')">پیگیری سفارش</button>
+          <button class="ml-2 px-4 py-2 rounded-md border" onclick="showPage('home-page')">بازگشت</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom nav (mobile) -->
+  <footer class="fixed bottom-3 left-0 right-0 flex justify-center pointer-events-none">
+    <div class="bg-white rounded-3xl px-4 py-2 shadow-xl pointer-events-auto">
+      <div class="flex gap-4">
+        <button onclick="showPage('home-page')" class="px-3 py-2">خانه</button>
+        <button onclick="showPage('cart-page')" class="px-3 py-2">سبد</button>
+        <button onclick="showPage('orders-page')" class="px-3 py-2">سفارشات</button>
+        <button onclick="handleProfileClick()" class="px-3 py-2">پروفایل</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<script>
+/*
+  Complete front-end logic.
+  Assumptions: api.php provides endpoints:
+   - products (GET)
+   - register (POST)
+   - login (POST)
+   - logout (POST)
+   - profile (GET)
+   - orders (GET)
+   - order (POST)
+   - discounts (GET)
+   - getDiscountsTotal (GET)
+   - getAddresses (GET)
+   - addAddress (POST)
+   - updateAddress (PUT with id param)
+   - deleteAddress (DELETE with id param)
+   - getCsrfToken (POST)
+  All requests use JSON and the response shape { success, message, data }.
+*/
+
+const API_URL = 'api.php';
+let cart = [];
+let allProducts = [];
+let currentUser = null;
+let csrfToken = null;
+let editingAddressId = null;
+
+// Provinces/Cities (sample, expand as needed)
+const provincesAndCities = {
+  "تهران": ["تهران","اسلامشهر","ری","ورامین","شهریار"],
+  "اصفهان": ["اصفهان","کاشان","خمینی‌شهر","نجف‌آباد","شاهین‌شهر"],
+  "مازندران": ["ساری","بابل","آمل","تنکابن","قائم‌شهر"],
+  "فارس": ["شیراز","مرودشت","جهرم","لار","فسا"],
+  "خراسان رضوی": ["مشهد","نیشابور","سبزوار","تربت حیدریه","قوچان"]
+};
+
+/* -------------------- Utilities -------------------- */
+function showToast(msg, type='success'){
+  const t = document.createElement('div');
+  t.className = 'toast ' + (type==='success' ? 'toast-success' : 'toast-error');
+  t.textContent = msg;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(()=> t.remove(), 3000);
+}
+function isLoggedIn(){ return !!currentUser && !!currentUser.id; }
+function formatPrice(n){ return Number(n||0).toLocaleString('fa-IR') + ' تومان'; }
+function apiFetch(action, data=null, method='POST'){
+  method = method.toUpperCase();
+  const url = new URL(API_URL, window.location.href);
+  url.searchParams.append('action', action);
+  const opts = { method, credentials:'include', headers:{} };
+  if (method === 'GET') {
+    // Attach data as query params if object
+    if (data && typeof data === 'object') Object.keys(data).forEach(k=>url.searchParams.append(k, data[k]));
+  } else {
+    opts.headers['Content-Type'] = 'application/json';
+    if (csrfToken) opts.headers['X-CSRF-Token'] = csrfToken;
+    opts.body = data ? JSON.stringify(data) : null;
+  }
+  return fetch(url.toString(), opts)
+    .then(r => r.json())
+    .then(json => {
+      if (!json || !json.success) {
+        const msg = (json && json.message) ? json.message : 'خطا در ارتباط با سرور';
+        throw new Error(msg);
+      }
+      return json.data;
+    });
+}
+
+/* -------------------- Navigation -------------------- */
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  feather.replace();
+}
+function handleProfileClick(){
+  if (isLoggedIn()) {
+    loadProfile().then(()=>showPage('profile-page'));
+  } else showPage('auth-page');
+}
+
+/* -------------------- Products & Cart -------------------- */
+async function fetchProducts(){
+  try{
+    const data = await apiFetch('products', null, 'GET');
+    allProducts = data || [];
+    renderProducts();
+  }catch(e){ showToast(e.message, 'error'); document.getElementById('products-grid').innerHTML = '<p class="muted">خطا در بارگذاری محصولات</p>'; }
+}
+function renderProducts(){
+  const grid = document.getElementById('products-grid');
+  grid.innerHTML = allProducts.map(p => `
+    <div class="card overflow-hidden">
+      <img src="${p.image || 'https://placehold.co/600x400'}" alt="${p.name}" class="w-full h-36 object-cover rounded-md mb-3">
+      <h4 class="font-semibold">${p.name}</h4>
+      <p class="muted text-sm mb-2">${p.description || ''}</p>
+      <div class="flex items-center justify-between mt-2">
+        <div class="font-bold">${formatPrice(p.price)}</div>
+        <button class="btn-accent py-2 px-3 rounded-md" onclick="addToCart(${p.id})">افزودن</button>
+      </div>
+    </div>`).join('');
+  feather.replace();
+}
+function addToCart(productId){
+  const prod = allProducts.find(p=>p.id===productId);
+  if(!prod){ showToast('محصول نامعتبر', 'error'); return; }
+  const it = cart.find(x=>x.id===productId);
+  if(it){ if(prod.stock && it.quantity>=prod.stock) return showToast('موجودی کافی نیست','error'); it.quantity++; }
+  else cart.push({ id:prod.id, name:prod.name, price:prod.price, quantity:1 });
+  persistCart();
+  renderCart();
+  showToast('افزودن به سبد');
+}
+function persistCart(){ localStorage.setItem('cart', JSON.stringify(cart)); updateCartCount(); }
+function loadCart(){ cart = JSON.parse(localStorage.getItem('cart')||'[]') || []; updateCartCount(); }
+function clearCart(){ cart = []; persistCart(); renderCart(); showToast('سبد پاک شد'); }
+function updateCartCount(){ document.getElementById('cart-count').textContent = cart.reduce((s,i)=>s+i.quantity,0); document.getElementById('checkout-btn').disabled = cart.length===0; }
+function renderCart(){
+  const box = document.getElementById('cart-items');
+  if(!box) return;
+  if(cart.length===0){
+    box.innerHTML = `<div class="muted text-center p-6">سبد خرید خالی است</div>`;
+    document.getElementById('cart-summary').classList.add('hidden');
+  } else {
+    box.innerHTML = cart.map(i=>`
+      <div class="flex items-center justify-between bg-white/3 p-3 rounded-lg">
+        <div><div class="font-semibold">${i.name}</div><div class="muted text-sm">${formatPrice(i.price)}</div></div>
+        <div class="flex items-center gap-2">
+          <button onclick="changeQty(${i.id}, -1)" class="px-2 py-1 rounded-md border">-</button>
+          <div class="px-2">${i.quantity}</div>
+          <button onclick="changeQty(${i.id}, 1)" class="px-2 py-1 rounded-md border">+</button>
+        </div>
+      </div>`).join('');
+    document.getElementById('cart-subtotal').textContent = formatPrice(cart.reduce((s,i)=>s+i.price*i.quantity,0));
+    // discounts will be fetched on checkout
+    document.getElementById('cart-final').textContent = formatPrice(cart.reduce((s,i)=>s+i.price*i.quantity,0));
+    document.getElementById('cart-summary').classList.remove('hidden');
+  }
+  updateCartCount();
+}
+function changeQty(id, delta){
+  const idx = cart.findIndex(x=>x.id===id);
+  if(idx===-1) return;
+  cart[idx].quantity += delta;
+  if(cart[idx].quantity<=0) cart.splice(idx,1);
+  persistCart(); renderCart();
+}
+
+/* -------------------- Auth -------------------- */
+async function register(e){
+  e.preventDefault();
+  const name = document.getElementById('registerName').value.trim();
+  const phone = document.getElementById('registerPhone').value.trim();
+  const password = document.getElementById('registerPassword').value;
+  const referral = document.getElementById('registerReferral').value.trim();
+  if(!name||!phone||!password) return showToast('همه فیلدهای ضروری را پر کنید','error');
+  try{
+    await apiFetch('register',{ name, phone, password, referral });
+    showToast('ثبت‌نام موفق؛ لطفا وارد شوید');
+    showPage('auth-page');
+  }catch(e){ showToast(e.message,'error'); }
+}
+async function login(e){
+  e.preventDefault();
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if(!username||!password) return showToast('ورود ناقص است','error');
+  try{
+    const data = await apiFetch('login',{ username, password });
+    currentUser = data;
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    await fetchCsrfToken();
+    showToast('ورود موفق');
+    updateNavForAuth();
+    showPage('home-page');
+  }catch(e){ showToast(e.message,'error'); }
+}
+async function logout(){
+  try{ await apiFetch('logout', null, 'POST'); }
+  catch(e){ console.warn('logout failed', e); }
+  currentUser = null; localStorage.removeItem('currentUser'); csrfToken=null;
+  showToast('خارج شدید'); updateNavForAuth(); showPage('home-page');
+}
+function showRegisterForm(){ showPage('auth-page'); document.getElementById('register-card').scrollIntoView(); }
+
+/* -------------------- CSRF -------------------- */
+async function fetchCsrfToken(){
+  try{
+    const data = await apiFetch('getCsrfToken', null, 'POST');
+    csrfToken = data.token;
+  }catch(e){ console.warn('no csrf', e); }
+}
+
+/* -------------------- Profile & Addresses -------------------- */
+async function loadProfile(){
+  try{
+    const p = await apiFetch('profile', null, 'GET');
+    document.getElementById('profile-name').textContent = p.name || '';
+    document.getElementById('profile-phone').textContent = p.phone || '';
+    document.getElementById('profile-referral').textContent = p.referral_code || '';
+    currentUser = p;
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    await populateSavedAddresses();
+    await renderProfileAddresses();
+  }catch(e){ showToast(e.message,'error'); }
+}
+async function updateNavForAuth(){
+  const nav = document.getElementById('nav-profile-btn');
+  if(isLoggedIn()){
+    nav.title = 'پروفایل';
+    document.querySelector('#nav-profile-btn i').setAttribute('data-feather','user');
+  } else {
+    nav.title = 'ورود';
+  }
+  feather.replace();
+}
+
+/* Addresses - profile view */
+async function renderProfileAddresses(){
+  try{
+    const addrs = await apiFetch('getAddresses', null, 'GET');
+    const box = document.getElementById('profile-addresses');
+    box.innerHTML = '';
+    if(!addrs || addrs.length===0) {
+      box.innerHTML = '<div class="muted">آدرسی ثبت نشده است</div>';
+      return;
+    }
+    addrs.forEach(a=>{
+      const el = document.createElement('div');
+      el.className = 'p-3 bg-white/3 rounded-md flex justify-between items-start';
+      el.innerHTML = `<div>
+        <div class="font-semibold">${a.province} / ${a.city} ${a.postal_code?(' - ' + a.postal_code):''}</div>
+        <div class="muted text-sm">${a.address}</div>
+      </div>
+      <div class="flex flex-col gap-2">
+        <button class="text-sm" onclick='openEditAddress(${a.id})'>ویرایش</button>
+        <button class="text-sm text-red-500" onclick='deleteAddress(${a.id})'>حذف</button>
+      </div>`;
+      box.appendChild(el);
+    });
+  }catch(e){ showToast(e.message,'error'); }
+}
+
+/* -------------------- Saved Addresses select (checkout) -------------------- */
+async function populateSavedAddresses(){
+  // populate #savedAddresses select with addresses
+  try{
+    const sel = document.getElementById('savedAddresses');
+    sel.innerHTML = '';
+    const addrs = await apiFetch('getAddresses', null, 'GET');
+    if(!addrs || addrs.length===0){
+      sel.innerHTML = '<option value="">آدرسی ذخیره نشده است</option>';
+      return;
+    }
+    addrs.forEach(a=>{
+      const opt = document.createElement('option');
+      opt.value = a.id;
+      opt.textContent = `${a.province} — ${a.city} — ${a.address}` + (a.is_default? ' (پیش‌فرض)':'');
+      sel.appendChild(opt);
+    });
+  }catch(e){ showToast(e.message,'error'); }
+}
+
+/* Create / Update Address */
+function resetAddressForm(){
+  editingAddressId = null;
+  document.getElementById('province').value = '';
+  document.getElementById('city').innerHTML = '';
+  document.getElementById('postal_code').value = '';
+  document.getElementById('address_details').value = '';
+  document.getElementById('saveAsDefault').checked = false;
+  toggleAddressForm(false);
+}
+function openNewAddressFromProfile(){
+  resetAddressForm();
+  toggleAddressForm(true);
+  showPage('profile-page');
+  // scroll
+  document.getElementById('newAddressForm').scrollIntoView({behavior:'smooth'});
+}
+async function saveAddress(){
+  const province = document.getElementById('province').value;
+  const city = document.getElementById('city').value;
+  const postal_code = document.getElementById('postal_code').value.trim();
+  const address = document.getElementById('address_details').value.trim();
+  const is_default = document.getElementById('saveAsDefault').checked ? 1 : 0;
+  if(!province||!city||!address) return showToast('استان، شهر و آدرس لازم است','error');
+
+  const payload = { province, city, postal_code, address, is_default };
+  try{
+    if(editingAddressId){
+      await apiFetch('updateAddress', payload, 'PUT'); // assumes API expects id via query param or in payload
+      showToast('آدرس به‌روزرسانی شد');
+    } else {
+      await apiFetch('addAddress', payload, 'POST');
+      showToast('آدرس ذخیره شد');
+    }
+    resetAddressForm();
+    await populateSavedAddresses();
+    await renderProfileAddresses();
+  }catch(e){ showToast(e.message,'error'); }
+}
+
+async function openEditAddress(id){
+  // fetch specific address (or get all and find)
+  try{
+    const addrs = await apiFetch('getAddresses', null, 'GET');
+    const a = addrs.find(x=>x.id==id) || (addrs[0]||null);
+    if(!a) return showToast('آدرس یافت نشد','error');
+    editingAddressId = a.id;
+    document.getElementById('province').value = a.province;
+    fillCities(a.province);
+    document.getElementById('city').value = a.city;
+    document.getElementById('postal_code').value = a.postal_code || '';
+    document.getElementById('address_details').value = a.address || '';
+    document.getElementById('saveAsDefault').checked = !!a.is_default;
+    toggleAddressForm(true);
+    showPage('profile-page');
+  }catch(e){ showToast(e.message,'error'); }
+}
+
+async function deleteAddress(id){
+  if(!confirm('مطمئنی می‌خوای این آدرس حذف بشه؟')) return;
+  try{
+    await apiFetch('deleteAddress', { id }, 'DELETE');
+    showToast('آدرس حذف شد');
+    await populateSavedAddresses();
+    await renderProfileAddresses();
+  }catch(e){ showToast(e.message,'error'); }
+}
+
+async function deleteSelectedAddress(){
+  const sel = document.getElementById('savedAddresses');
+  const id = sel.value;
+  if(!id) return showToast('آدرسی انتخاب نشده','error');
+  await deleteAddress(id);
+}
+
+/* -------------------- Address form helpers -------------------- */
+function fillProvinceOptions(){
+  const p = document.getElementById('province');
+  p.innerHTML = '<option value="">انتخاب استان</option>';
+  Object.keys(provincesAndCities).forEach(k=>{
+    const o = document.createElement('option'); o.value = k; o.textContent = k; p.appendChild(o);
+  });
+}
+function fillCities(province){
+  const citySel = document.getElementById('city');
+  citySel.innerHTML = '';
+  const list = provincesAndCities[province] || [];
+  if(list.length===0){ citySel.disabled = true; return; }
+  list.forEach(c=>{
+    const o = document.createElement('option'); o.value = c; o.textContent = c; citySel.appendChild(o);
+  });
+  citySel.disabled = false;
+}
+document.getElementById('province').addEventListener('change', e => fillCities(e.target.value));
+
+function toggleAddressForm(isNew){
+  document.getElementById('newAddressForm').classList.toggle('hidden', !isNew);
+  document.getElementById('savedAddressesBox').classList.toggle('hidden', isNew);
+}
+
+/* -------------------- Checkout & Order -------------------- */
+async function proceedToCheckout(){
+  if(cart.length===0) return showToast('سبد خرید خالی است','error');
+  if(!isLoggedIn()){ showToast('ابتدا وارد شوید','error'); showPage('auth-page'); return; }
+  await populateSavedAddresses();
+  showPage('checkout-page');
+  // fetch discounts if any
+  try{
+    const disc = await apiFetch('getDiscountsTotal', null, 'GET');
+    const totalDiscount = disc.total || 0;
+    document.getElementById('cart-discount').textContent = formatPrice(totalDiscount);
+    const subtotal = cart.reduce((s,i)=>s+i.price*i.quantity,0);
+    document.getElementById('cart-subtotal').textContent = formatPrice(subtotal);
+    document.getElementById('cart-final').textContent = formatPrice(Math.max(0, subtotal - totalDiscount));
+  }catch(e){ /* ignore */ }
+}
+
+async function confirmOrder(){
+  if(cart.length===0) return showToast('سبد خالی','error');
+  await fetchCsrfToken();
+  const addressOption = document.querySelector('input[name="addressOption"]:checked').value;
+  const payload = { items: cart.map(i=>({ id: i.id, quantity: i.quantity })) };
+  if(addressOption==='saved'){
+    const aid = document.getElementById('savedAddresses').value;
+    if(!aid) return showToast('یک آدرس انتخاب کنید','error');
+    payload.address_id = aid;
+  } else {
+    // new address inline
+    payload.address = document.getElementById('address_details').value.trim();
+    payload.province = document.getElementById('province').value;
+    payload.city = document.getElementById('city').value;
+    payload.postal_code = document.getElementById('postal_code').value.trim();
+    payload.saveAsDefault = document.getElementById('saveAsDefault').checked ? 1 : 0;
+    if(!payload.address || !payload.province || !payload.city) return showToast('آدرس جدید ناقص است','error');
+  }
+  payload.payment = document.querySelector('input[name="payment"]:checked').value || 'cod';
+
+  try{
+    const data = await apiFetch('order', payload, 'POST');
+    // success
+    const order_id = data.order_id || data.orderId || null;
+    cart = []; persistCart(); renderCart();
+    document.getElementById('order-number').textContent = order_id || '-';
+    showPage('confirmation-page');
+    showToast('سفارش ثبت شد');
+  }catch(e){ showToast(e.message,'error'); }
+}
+
+/* -------------------- Orders listing -------------------- */
+async function loadOrders(){
+  if(!isLoggedIn()) return showPage('auth-page');
+  try{
+    const orders = await apiFetch('orders', null, 'GET');
+    const list = document.getElementById('orders-list');
+    if(!orders || orders.length===0){ list.innerHTML = '<div class="muted p-4 text-center">سفارشی ثبت نشده است</div>'; return; }
+    list.innerHTML = orders.map(o=>`
+      <div class="card p-3">
+        <div class="flex justify-between items-center">
+          <div><div class="font-semibold">سفارش #${o.id}</div><div class="muted text-sm">${new Date(o.created_at).toLocaleDateString('fa-IR')}</div></div>
+          <div><span class="status-badge bg-yellow-100 text-yellow-800">${o.status}</span></div>
+        </div>
+        <div class="mt-3 text-sm">
+          ${ (o.items||[]).map(it=>`<div class="flex justify-between"><div>${it.product_name} × ${it.quantity}</div><div>${formatPrice(it.price*it.quantity)}</div></div>`).join('') }
+        </div>
+        <div class="mt-3 flex justify-between font-bold"><div>مجموع:</div><div>${formatPrice(o.total_amount)}</div></div>
+      </div>`).join('');
+  }catch(e){ showToast(e.message,'error'); }
+}
+
+/* -------------------- Init -------------------- */
+async function initApp(){
+  // load local state
+  try{
+    allProducts = [];
+    loadCart();
+    const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
+    if(user) currentUser = user;
+    await fetchCsrfToken().catch(()=>{/*ignore*/});
+    fillProvinceOptions();
+    renderCart();
+    updateNavForAuth();
+    fetchProducts();
+  }catch(e){ console.error(e); }
+}
+function fillProvinceOptions(){
+  const p = document.getElementById('province');
+  if(!p) return;
+  p.innerHTML = '<option value="">انتخاب استان</option>';
+  Object.keys(provincesAndCities).forEach(k=>{
+    const o = document.createElement('option'); o.value=k; o.textContent=k; p.appendChild(o);
+  });
+}
+
+/* -------------------- Page lifecycle helpers  -------------------- */
+document.addEventListener('DOMContentLoaded', ()=>{ initApp(); feather.replace(); });
+
+// hook: when user navigates to pages that need data
+document.querySelectorAll('button, a').forEach(()=>{}); // noop placeholder
+
+// small helpers for exposing functions to inline onclicks used above
+window.showPage = showPage;
+window.addToCart = addToCart;
+window.proceedToCheckout = proceedToCheckout;
+window.confirmOrder = confirmOrder;
+window.changeQty = changeQty;
+window.clearCart = clearCart;
+window.handleProfileClick = handleProfileClick;
+window.login = login;
+window.register = register;
+window.logout = logout;
+window.populateSavedAddresses = populateSavedAddresses;
+window.openEditAddress = openEditAddress;
+window.deleteAddress = deleteAddress;
+window.saveAddress = saveAddress;
+window.openNewAddressFromProfile = openNewAddressFromProfile;
+window.showRegisterForm = showRegisterForm;
+window.loadOrders = loadOrders;
+window.fillCities = fillCities;
+window.toggleAddressForm = toggleAddressForm;
+window.deleteSelectedAddress = deleteSelectedAddress;
+
+</script>
+</body>
+</html>
