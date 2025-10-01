@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل مدیریت - برنج داودی</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; }
+        .sidebar { background: #1e293b; }
+        .main-content { background: #f8fafc; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar w-64 text-white p-4">
+            <h1 class="text-xl font-bold mb-8">پنل مدیریت</h1>
+            <nav class="space-y-2">
+                <a href="#dashboard" class="block py-2 px-4 rounded hover:bg-slate-700" onclick="showSection('dashboard')">
+                    <i data-feather="home" class="w-4 h-4 inline ml-2"></i>
+                    داشبورد
+                </a>
+                <a href="#users" class="block py-2 px-4 rounded hover:bg-slate-700" onclick="showSection('users')">
+                    <i data-feather="users" class="w-4 h-4 inline ml-2"></i>
+                    مدیریت کاربران
+                </a>
+                <a href="#products" class="block py-2 px-4 rounded hover:bg-slate-700" onclick="showSection('products')">
+                    <i data-feather="package" class="w-4 h-4 inline ml-2"></i>
+                    مدیریت محصولات
+                </a>
+                <a href="#orders" class="block py-2 px-4 rounded hover:bg-slate-700" onclick="showSection('orders')">
+                    <i data-feather="shopping-cart" class="w-4 h-4 inline ml-2"></i>
+                    مدیریت سفارشات
+                </a>
+                <a href="#discounts" class="block py-2 px-4 rounded hover:bg-slate-700" onclick="showSection('discounts')">
+                    <i data-feather="tag" class="w-4 h-4 inline ml-2"></i>
+                    مدیریت تخفیف‌ها
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Header -->
+            <header class="bg-white shadow-sm p-4">
+                <div class="flex justify-between items-center">
+                    <h2 id="page-title" class="text-lg font-semibold">داشبورد</h2>
+                    <div class="flex items-center space-x-4">
+                        <span id="admin-name">مدیر سیستم</span>
+                        <button onclick="logout()" class="text-red-600 hover:text-red-800">
+                            <i data-feather="log-out" class="w-4 h-4"></i>
+                            خروج
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="flex-1 p-6 overflow-auto">
+                <!-- Dashboard Section -->
+                <section id="dashboard-section" class="section">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                                    <i data-feather="users" class="w-6 h-6"></i>
+                                </div>
+                                <div class="mr-4">
+                                    <p class="text-sm text-gray-600">کل کاربران</p>
+                                    <h3 id="total-users" class="text-2xl font-bold">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-green-100 text-green-600">
+                                    <i data-feather="shopping-cart" class="w-6 h-6"></i>
+                                </div>
+                                <div class="mr-4">
+                                    <p class="text-sm text-gray-600">کل سفارشات</p>
+                                    <h3 id="total-orders" class="text-2xl font-bold">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                                    <i data-feather="package" class="w-6 h-6"></i>
+                                </div>
+                                <div class="mr-4">
+                                    <p class="text-sm text-gray-600">کل محصولات</p>
+                                    <h3 id="total-products" class="text-2xl font-bold">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                                    <i data-feather="dollar-sign" class="w-6 h-6"></i>
+                                </div>
+                                <div class="mr-4">
+                                    <p class="text-sm text-gray-600">درآمد کل</p>
+                                    <h3 id="total-revenue" class="text-2xl font-bold">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Users Section -->
+                <section id="users-section" class="section hidden">
+                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                        <div class="p-4 border-b">
+                            <h3 class="text-lg font-semibold">مدیریت کاربران</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-right">ID</th>
+                                        <th class="px-6 py-3 text-right">نام</th>
+                                        <th class="px-6 py-3 text-right">ایمیل</th>
+                                        <th class="px-6 py-3 text-right">تلفن</th>
+                                        <th class="px-6 py-3 text-right">تاریخ ثبت‌نام</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table-body" class="divide-y divide-gray-200">
+                                    <!-- کاربران اینجا لود می‌شوند -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- سایر section ها ... -->
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript برای مدیریت پنل ادمین
+        let currentAdmin = null;
+        let csrfToken = null;
+
+        async function initAdmin() {
+            // بررسی لاگین بودن
+            await checkAdminAuth();
+            await loadDashboardStats();
+            feather.replace();
+        }
+
+        async function checkAdminAuth() {
+            try {
+                // بررسی session از طریق API
+                const response = await fetch('api.php?action=profile', {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                if (!data.success) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                currentAdmin = data.data;
+                document.getElementById('admin-name').textContent = currentAdmin.name;
+                
+            } catch (error) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        async function loadDashboardStats() {
+            try {
+                const response = await fetch('admin.php?action=dashboardStats', {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('total-users').textContent = data.data.total_users;
+                    document.getElementById('total-orders').textContent = data.data.total_orders;
+                    document.getElementById('total-products').textContent = data.data.total_products;
+                    document.getElementById('total-revenue').textContent = new Intl.NumberFormat('fa-IR').format(data.data.total_revenue) + ' تومان';
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        function showSection(sectionName) {
+            // مخفی کردن تمام section ها
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // نمایش section انتخاب شده
+            document.getElementById(sectionName + '-section').classList.remove('hidden');
+            
+            // به‌روزرسانی عنوان صفحه
+            const titles = {
+                dashboard: 'داشبورد',
+                users: 'مدیریت کاربران',
+                products: 'مدیریت محصولات',
+                orders: 'مدیریت سفارشات',
+                discounts: 'مدیریت تخفیف‌ها'
+            };
+            document.getElementById('page-title').textContent = titles[sectionName];
+        }
+
+        async function logout() {
+            try {
+                await fetch('api.php?action=logout', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'X-CSRF-Token': csrfToken
+                    }
+                });
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        // راه‌اندازی پنل هنگام لود صفحه
+        document.addEventListener('DOMContentLoaded', initAdmin);
+    </script>
+</body>
+</html>
